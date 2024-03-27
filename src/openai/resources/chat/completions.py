@@ -664,6 +664,9 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
+        from rich import print as rprint
+        rprint(">>>>>>>>>> src/openai/resources/chat/completions.py Completions.create")
+        rprint({"messages": messages, "function_call": function_call, "functions": functions})        
         return self._post(
             "/chat/completions",
             body=maybe_transform(
@@ -1331,6 +1334,9 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
+        from rich import print as rprint
+        rprint(">>>>>>>>>> src/openai/resources/chat/completions.py AsyncCompletions.create")
+        rprint({"messages": messages, "function_call": function_call, "functions": functions})        
         return await self._post(
             "/chat/completions",
             body=await async_maybe_transform(
