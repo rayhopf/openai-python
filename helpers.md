@@ -33,11 +33,13 @@ class EventHandler(AssistantEventHandler):
   def on_text_delta(self, delta: TextDelta, snapshot: Text):
     print(delta.value, end="", flush=True)
 
+  @override
   def on_tool_call_created(self, tool_call: ToolCall):
     print(f"\nassistant > {tool_call.type}\n", flush=True)
 
+  @override
   def on_tool_call_delta(self, delta: ToolCallDelta, snapshot: ToolCall):
-    if delta.type == 'code_interpreter':
+    if delta.type == "code_interpreter" and delta.code_interpreter:
       if delta.code_interpreter.input:
         print(delta.code_interpreter.input, end="", flush=True)
       if delta.code_interpreter.outputs:
@@ -46,11 +48,11 @@ class EventHandler(AssistantEventHandler):
           if output.type == "logs":
             print(f"\n{output.logs}", flush=True)
 
-# Then, we use the `create_and_stream` SDK helper
+# Then, we use the `stream` SDK helper
 # with the `EventHandler` class to create the Run
 # and stream the response.
 
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
   thread_id="thread_id",
   assistant_id="assistant_id",
   event_handler=EventHandler(),
@@ -63,13 +65,13 @@ with client.beta.threads.runs.create_and_stream(
 You can also iterate over all the streamed events.
 
 ```python
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
   thread_id=thread.id,
   assistant_id=assistant.id
 ) as stream:
     for event in stream:
         # Print the text from text delta events
-        if event.type == "thread.message.delta" and event.data.delta.content:
+        if event.event == "thread.message.delta" and event.data.delta.content:
             print(event.data.delta.content[0].text)
 ```
 
@@ -78,7 +80,7 @@ with client.beta.threads.runs.create_and_stream(
 You can also iterate over just the text deltas received
 
 ```python
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
   thread_id=thread.id,
   assistant_id=assistant.id
 ) as stream:
@@ -91,7 +93,7 @@ with client.beta.threads.runs.create_and_stream(
 There are three helper methods for creating streams:
 
 ```python
-client.beta.threads.runs.create_and_stream()
+client.beta.threads.runs.stream()
 ```
 
 This method can be used to start and stream the response to an existing run with an associated thread
@@ -213,3 +215,24 @@ def get_final_messages(self) -> List[Message]
 
 These methods are provided for convenience to collect information at the end of a stream. Calling these events
 will trigger consumption of the stream until completion and then return the relevant accumulated objects.
+
+# Polling Helpers
+
+When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete.
+The SDK includes helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
+If an API method results in an action which could benefit from polling there will be a corresponding version of the
+method ending in `_and_poll`.
+
+All methods also allow you to set the polling frequency, how often the API is checked for an update, via a function argument (`poll_interval_ms`).
+
+The polling methods are:
+
+```python
+client.beta.threads.create_and_run_poll(...)
+client.beta.threads.runs.create_and_poll(...)
+client.beta.threads.runs.submit_tool_ouptputs_and_poll(...)
+client.beta.vector_stores.files.upload_and_poll(...)
+client.beta.vector_stores.files.create_and_poll(...)
+client.beta.vector_stores.file_batches.create_and_poll(...)
+client.beta.vector_stores.file_batches.upload_and_poll(...)
+```
