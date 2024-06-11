@@ -589,7 +589,7 @@ class Completions(SyncAPIResource):
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         from rich import print as rprint
         rprint(">>>>>>>>>> src/openai/resources/chat/completions.py Completions.create")
-        rprint({"messages": messages, "function_call": function_call, "functions": functions})        
+        rprint({"messages": messages, "function_call": function_call, "functions": functions, "tools": tools})        
         return self._post(
             "/chat/completions",
             body=maybe_transform(
@@ -1183,7 +1183,7 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         from rich import print as rprint
         rprint(">>>>>>>>>> src/openai/resources/chat/completions.py AsyncCompletions.create")
-        rprint({"messages": messages, "function_call": function_call, "functions": functions})        
+        rprint({"messages": messages, "function_call": function_call, "functions": functions, "tools": tools})        
         return await self._post(
             "/chat/completions",
             body=await async_maybe_transform(
